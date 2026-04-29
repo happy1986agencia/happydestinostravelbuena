@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Happy Destinos Travel</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body{margin:0;font-family:'Segoe UI',sans-serif;background:#eef2f7;color:#2c3e50;}
+.container{max-width:900px;margin:30px auto;padding:20px;}
+.card{background:white;border-radius:15px;box-shadow:0 6px 20px rgba(0,0,0,.08);margin-top:20px;overflow:hidden;}
+.card-header{background:#0b2d5c;color:#c9a646;padding:15px;font-weight:bold;font-size:18px;}
+.card-body{padding:20px;}
+.row{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:15px;}
+.item{flex:1;min-width:200px;}
+.label{font-size:12px;color:#7f8c8d;text-transform:uppercase;}
+.value{font-weight:bold;margin-top:5px;}
+button{background:#0b2d5c;color:#ffd86b;border:none;padding:12px;border-radius:10px;cursor:pointer;font-weight:bold;width:100%;margin-top:10px;}
+.whatsapp{background:#25D366;color:white;}
+.badge{background:#0b2d5c;color:#ffd86b;padding:15px;border-radius:50px;text-align:center;font-weight:bold;font-size:18px;margin-bottom:20px;}
+.logo{display:block;margin:auto;max-width:180px;margin-bottom:10px;}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.nit{text-align:center;font-size:13px;margin-top:5px;color:#555;}
+.agencia{text-align:center;font-weight:bold;font-size:20px;color:#0b2d5c;}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card" id="formulario">
+<div class="card-header">Formulario de Cotización</div>
+<div class="card-body">
+<input id="nombre" placeholder="Nombre completo">
+<input id="telefono" placeholder="Teléfono">
+<input id="correo" placeholder="Correo">
+<input id="destino" placeholder="Destino">
+<input id="hotel" placeholder="Hotel">
+<input id="checkin" type="date">
+<input id="checkout" type="date">
+<input id="viajeros" placeholder="Número de viajeros">
+<input id="habitaciones" placeholder="Número de habitaciones">
+<input id="regimen" placeholder="Régimen de alimentación">
+<input id="localizador" placeholder="Localizador (opcional)">
+
+<button onclick="generarResultado()">Generar Cotización</button>
+</div>
+</div>
+
+<div id="resultado" style="display:none;">
+
+<div class="agencia">HAPPY DESTINOS TRAVEL</div>
+<img src="logo.png" class="logo">
+<div class="nit">NIT: 900123456-7</div>
+<div class="badge">✔ PRE-RESERVA CONFIRMADA</div>
+
+<div class="card">
+<div class="card-header">Resumen del Viaje</div>
+<div class="card-body">
+
+<div class="row">
+<div class="item"><div class="label">Destino</div><div class="value" id="r_destino"></div></div>
+<div class="item"><div class="label">Hotel</div><div class="value" id="r_hotel"></div></div>
+</div>
+
+<div class="row">
+<div class="item"><div class="label">Check-in</div><div class="value" id="r_checkin"></div></div>
+<div class="item"><div class="label">Check-out</div><div class="value" id="r_checkout"></div></div>
+<div class="item"><div class="label">Viajeros</div><div class="value" id="r_viajeros"></div></div>
+</div>
+
+<div class="row">
+<div class="item"><div class="label">Habitaciones</div><div class="value" id="r_habitaciones"></div></div>
+<div class="item"><div class="label">Régimen</div><div class="value" id="r_regimen"></div></div>
+<div class="item"><div class="label">Localizador</div><div class="value" id="r_localizador"></div></div>
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<div class="card-header">Información del Viajero</div>
+<div class="card-body">
+
+<div class="row">
+<div class="item"><div class="label">Titular</div><div class="value" id="r_nombre"></div></div>
+<div class="item"><div class="label">Teléfono</div><div class="value" id="r_telefono"></div></div>
+<div class="item"><div class="label">Correo</div><div class="value" id="r_correo"></div></div>
+</div>
+
+</div>
+</div>
+
+<div class="actions">
+<button onclick="descargarPDF()">Descargar PDF</button>
+<button class="whatsapp" onclick="enviarWhatsApp()">Enviar por WhatsApp</button>
+</div>
+
+</div>
+
+</div>
+
+<script>
+let dataGlobal={};
+
+function generarLocalizadorAuto(){
+return 'HT'+Math.floor(Math.random()*1000000000);
+}
+
+function generarResultado(){
+let data={
+nombre:nombre.value,
+telefono:telefono.value,
+correo:correo.value,
+destino:destino.value,
+hotel:hotel.value,
+checkin:checkin.value,
+checkout:checkout.value,
+viajeros:viajeros.value,
+habitaciones:habitaciones.value,
+regimen:regimen.value,
+localizador: localizador.value ? localizador.value : generarLocalizadorAuto()
+};
+
+dataGlobal=data;
+
+Object.keys(data).forEach(k=>{
+let el=document.getElementById('r_'+k);
+if(el) el.innerText=data[k];
+});
+
+formulario.style.display='none';
+resultado.style.display='block';
+}
+
+function enviarWhatsApp(){
+let d=dataGlobal;
+let msg=`Pre-reserva confirmada%0A${d.nombre}%0A${d.destino}%0A${d.hotel}%0ALocalizador: ${d.localizador}`;
+window.open(`https://wa.me/57${d.telefono}?text=${msg}`,'_blank');
+}
+
+async function descargarPDF(){
+const { jsPDF } = window.jspdf;
+let doc = new jsPDF();
+let d=dataGlobal;
+
+// Fondo header azul
+doc.setFillColor(11,45,92);
+doc.rect(0,0,210,35,'F');
+
+// Nombre agencia
+doc.setTextColor(255,216,107);
+doc.setFontSize(18);
+doc.text("HAPPY DESTINOS TRAVEL", 40, 15);
+
+// Titulo
+doc.setFontSize(14);
+doc.text("PRE-RESERVA CONFIRMADA", 50, 28);
+
+// Reset color
+doc.setTextColor(0,0,0);
+
+// Caja resumen
+
+doc.setDrawColor(201,166,70);
+doc.rect(10,45,190,60);
+
+doc.setFontSize(12);
+doc.text(`Destino: ${d.destino}`, 15, 55);
+doc.text(`Hotel: ${d.hotel}`, 15, 65);
+doc.text(`Fechas: ${d.checkin} a ${d.checkout}`, 15, 75);
+doc.text(`Viajeros: ${d.viajeros}`, 15, 85);
+doc.text(`Habitaciones: ${d.habitaciones}`, 110, 55);
+doc.text(`Régimen: ${d.regimen}`, 110, 65);
+doc.text(`Localizador: ${d.localizador}`, 110, 75);
+
+// Caja cliente
+
+doc.rect(10,110,190,40);
+doc.text(`Nombre: ${d.nombre}`, 15, 125);
+doc.text(`Teléfono: ${d.telefono}`, 15, 135);
+doc.text(`Correo: ${d.correo}`, 15, 145);
+
+// Footer
+
+doc.setFontSize(10);
+doc.text("Happy Destinos Travel", 10, 280);
+doc.text("NIT: 900123456-7", 10, 285);
+
+// Guardar
+doc.save("PreReserva_Profesional.pdf");
+}
+</script>
+
+</body>
+</html>
